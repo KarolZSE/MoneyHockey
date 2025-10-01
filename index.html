@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    body {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        background: #f3f6fb;
+        color: #0b620b;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    #stage {
+        position: relative;
+        width: 800px;
+        height: 600px;
+        background: linear-gradient(180deg, #fff, #eaf2ea);
+        overflow: hidden;
+        border: 2p solid #ddd;
+        border-radius: 8px;
+    }
+
+    #svg {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    #Player, #Enemy {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 4px 10px rgba(11, 33, 54, 0.15);
+    }
+
+    #Player {
+        background: #0b68d1;
+        border: 3px solid rgba(11, 104, 209, 0.3);
+    }
+
+    #Enemy {
+        background: #d14800;
+        border: 3px solid rgba(209, 72, 72, 0.3);
+    }
+
+    #Meet {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: #ffb400;
+        border: 2px solid #ff8800;
+        display: none;
+        z-index: 2;
+    }
+</style>
+<body>
+    <div id="stage">
+        <svg id="svg" width="800" height="600"></svg>
+        <div id="Enemy">E</div>
+        <div id="Player">P</div>
+        <div id="Meet"></div>
+    </div>
+</body>
+<script>
+    const Enemy = document.getElementById("Enemy");
+    const Player = document.getElementById("Player");
+    const svg = document.getElementById("svg");
+    const Meet = document.getElementById("Meet");
+
+    const stage = document.getElementById("stage");
+    const STAGE_WIDTH = 800;
+    const STAGE_HEIGHT = 600;
+
+    const player = { x: 600, y: 500, speed: 250};
+    const enemy = { x: 300, y: 100, speed: 650};
+    const velocity = { x: 10, y: -10};
+    const radius = 12;
+
+    let running = true;
+    let lastTime = null;
+
+ 
+    circleEl = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circleEl.setAttribute('fill', 'rgba(11, 104, 209, 0.06)');
+    circleEl.setAttribute('stroke', 'rgba(11, 104, 209, 0.4)');
+    circleEl.setAttribute('stroke-width', '2');
+    circleEl.setAttribute('pointer-events', 'none');
+    svg.appendChild(circleEl);
+
+    const enemyLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    enemyLine.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
+    enemyLine.setAttribute('stroke-width', '2');
+    enemyLine.setAttribute('stroke-dasharray', '4 2');
+    svg.appendChild(enemyLine);
+    const enemystart = {x: enemy.x, y: enemy.y};
+
+    const playerLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    playerLine.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
+    playerLine.setAttribute('stroke-width', '2');
+    playerLine.setAttribute('stroke-dasharray', '4 2');
+    svg.appendChild(playerLine);
+    const playerstart = {x: player.x, y: player.y};
+
+
+    function setElementPos(el, x, y) {
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+
+    }
+
+    function getInterceptPoint(P, Sp, E, Ve) {
+        const dx = E.x - P.x;
+        const dy = E.y - P.y;
+        const Vx = Ve.x;
+        const Vy = Ve.y;
+
+        const a = Vx * Vx + Vy * Vy - Sp * Sp;
+        const b = 2 * (dx * Vx + dy * Vy);
+        const c = dx * dx + dy * dy;
+
+        let t;
+        if (Math.abs(a) < 1e-6) {
+            if (Math.abs(b) < 1e-6) return { x: E.x, y: E.y};
+            t = -c / b;
+            if (t < 0) t = 0;
+        } else {
+            const disc = b * b - 4 * a * c;
+            if (disc < 0) return { x: E.x, y: E.y};
+            const sqrtDisk = Math.sqrt(disc);
+            const t1 = (-b - sqrtDisk) / (2 * a);
+            const t2 = (-b + sqrtDisk) / (2 * a);
+            const times = [t1, t2].filter(v => v >= 0);
+            if (times.length === 0) return { x: E.x, y: E.y};
+            t = Math.min(...times);
+        }
+        
+        return { x: E.x + Vx * t, y: E.y + Vy * t};
+    }
+
+    function computeMeet() {
+        const intercept = getInterceptPoint(player, player.speed, enemy, velocity);
+
+        if (!intercept) {
+            Meet.style.display = 'none';
+            return;
+        }
+
+        Meet.style.display = 'block';
+        setElementPos(Meet, intercept.x, intercept.y);
+
+        const dx = intercept.x - player.x;
+        const dy = intercept.y - player.y;
+    }
+
+    function loop(timestamp) {
+        if (!running) return;
+        if (!lastTime) lastTime = timestamp;
+        const dt = (timestamp - lastTime) / 1000;
+        lastTime = timestamp;
+
+        enemy.x += velocity.x * dt;
+        enemy.y += velocity.y * dt;
+
+        if (enemy.x < 0) enemy.x = STAGE_WIDTH;
+        if (enemy.x > STAGE_WIDTH) enemy.x = 0;
+        if (enemy.y < 0) enemy.y = STAGE_HEIGHT;
+        if (enemy.y > STAGE_HEIGHT) enemy.y = 0;
+
+
+        const intercept = getInterceptPoint(player, player.speed, enemy, velocity);
+        const dx = intercept.x - player.x;
+        const dy = intercept.y - player.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 0.1) {
+            let moveDist = Math.min(player.speed * dt, dist);
+            player.x += (dx / dist) * moveDist;
+            player.y += (dy / dist) * moveDist;
+
+            player.x = Math.max(Math.min(STAGE_WIDTH, player.x));
+            player.y = Math.max(Math.min(STAGE_HEIGHT, player.y));
+        }
+
+        setElementPos(Player, player.x, player.y);
+        setElementPos(Enemy, enemy.x, enemy.y);
+
+        circleEl.setAttribute('cx', player.x);
+        circleEl.setAttribute('cy', player.y);
+        circleEl.setAttribute('r', radius);
+
+        enemyLine.setAttribute('x1', enemystart.x);
+        enemyLine.setAttribute('y1', enemystart.y);
+        enemyLine.setAttribute('x2', enemy.x);
+        enemyLine.setAttribute('y2', enemy.y);
+
+        playerLine.setAttribute('x1', playerstart.x);
+        playerLine.setAttribute('y1', playerstart.y);
+        playerLine.setAttribute('x2', player.x);
+        playerLine.setAttribute('y2', player.y);
+
+        if (Math.hypot(player.x - enemy.x, player.y - enemy.y) <= radius) {
+            Meet.style.display = 'block';
+            setElementPos(Meet, enemy.x, enemy.y);
+            running = false;
+        }
+
+        computeMeet();
+        requestAnimationFrame(loop);
+    }
+
+        setElementPos(Player, player.x, player.y);
+        setElementPos(Enemy, enemy.x, enemy.y);
+
+        circleEl.setAttribute('cx', player.x);
+        circleEl.setAttribute('cy', player.y);
+        circleEl.setAttribute('r', radius);
+
+        computeMeet();
+        requestAnimationFrame(loop);
+</script>
+</html>
