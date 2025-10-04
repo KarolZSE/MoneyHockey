@@ -8,21 +8,38 @@
 <style>
     body {
         display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column-reverse;
         gap: 20px;
         padding: 20px;
-        background: #f3f6fb;
+        background: #3d71c5;
         color: #0b620b;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
 
+    @font-face {
+        font-family: JosefinSans;
+        src: url(JosefinSans-Bold.ttf);
+    }
+
     #stage {
         position: relative;
+        text-align: center;
         width: 800px;
         height: 600px;
         background: linear-gradient(180deg, #fff, #eaf2ea);
         overflow: hidden;
         border: 2p solid #ddd;
         border-radius: 8px;
+    }
+
+    #stage > h1 {
+        position: relative;
+        line-height: 600px;
+        font-size: 200px;
+        display: none;
+        z-index: 10;
     }
 
     #svg {
@@ -33,7 +50,7 @@
         pointer-events: none;
     }
 
-    #Player, #Enemy {
+    #Player, #Enemy, #AccPlayer {
         position: absolute;
         width: 24px;
         height: 24px;
@@ -57,6 +74,11 @@
         border: 3px solid rgba(209, 72, 72, 0.3);
     }
 
+    #AccPlayer {
+        background: #0b620b;
+        border: 3px solid rgba(17, 133, 14, 0.3);
+    }
+
     #Meet {
         position: absolute;
         width: 12px;
@@ -68,33 +90,90 @@
         display: none;
         z-index: 2;
     }
+    #Event {
+        color: black;
+    }
+    #Menu {
+        position: absolute;
+        top: 50%;
+        transform: translate(0%, -50%);
+        display: flex;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        z-index: 10;
+        color: black;
+    }
+
+    #Menu > h1 {
+        color: #e52554;
+        -webkit-text-stroke: 1px #181818;
+    }
+    .diff {
+        width: 20%;
+        background-color: #181818;
+        border: 3px solid #e52554;
+        color: #e52554;
+        height: 40px;
+        font-family: JosefinSans, sans-serif;
+        border-radius: 10px;
+        
+    }
 </style>
 <body>
     <div id="stage">
+        <div id="Menu">
+            <H1>Welcome to the coin hockey!</H1>
+            <p>LORUM IPSUM gerhgerrerggegergerrgergergergergerrrergergergerergergeregergergerergergerggergerrgergerger</p>
+            <div style="display: flex; justify-content: center; gap: 100px; width: 100%;">
+            <button class="diff" id="Easy">EASY</button>
+            <button class="diff" id="Hard">HARD</button>
+            </div>
+            <button class="diff" id="Medium">MEDIUM</button>
+        </div>
         <svg id="svg" width="800" height="600"></svg>
-        <div id="Enemy">E</div>
-        <div id="Player">P</div>
+        <div id="Enemy">$</div>
+        <div id="Player">E</div>
+        <div id="AccPlayer">P</div>
+        <h1 id="Countdown">Hi!</h1>
         <div id="Meet"></div>
     </div>
+    <h1 id="Event">Event</h1>
 </body>
 <script>
     const Enemy = document.getElementById("Enemy");
     const Player = document.getElementById("Player");
     const svg = document.getElementById("svg");
     const Meet = document.getElementById("Meet");
+    const APlayer = document.getElementById("AccPlayer");
+    const Events = document.getElementById("Event");
+    const Countdown = document.getElementById("Countdown");
 
     const stage = document.getElementById("stage");
     const STAGE_WIDTH = 800;
     const STAGE_HEIGHT = 600;
 
-    const player = { x: 600, y: 500, speed: 250};
-    const enemy = { x: 300, y: 100, speed: 650};
-    const velocity = { x: 10, y: -10};
-    const radius = 12;
+    const AccPlayer = {x: 0, y: 0};
+    const AccPlayerPrev = {x: 0, y: 0};
+    const AccPlayerVelocity = {x: 0, y: 0};
+    const player = { x: 300, y: 300, speed: 600};
+    const enemy = { x: 400, y: 300};
+    const velocity = { x: 150, y: 150};
+    const radius = 5;
+
+    const INITIAL_STATE = {
+        player: { x: player.x, y: player.y, speed: player.speed},
+        enemy: { x: enemy.x, y: enemy.y},
+        velocity:{ x: 150, y: 150}
+    };
 
     let running = true;
     let lastTime = null;
-
+    let temp = 1;
+    let tempP = 1;
+    let Stuck = 0;
+    let s = 0;
  
     circleEl = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circleEl.setAttribute('fill', 'rgba(11, 104, 209, 0.06)');
@@ -102,6 +181,17 @@
     circleEl.setAttribute('stroke-width', '2');
     circleEl.setAttribute('pointer-events', 'none');
     svg.appendChild(circleEl);
+
+    const halfLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    halfLine.setAttribute('x1', STAGE_WIDTH / 2);
+    halfLine.setAttribute('y1', '0');
+    halfLine.setAttribute('x2', STAGE_WIDTH / 2);
+    halfLine.setAttribute('y1', STAGE_HEIGHT);
+    halfLine.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
+    halfLine.setAttribute('stroke-width', '2');
+    halfLine.setAttribute('stroke-dasharray', '4 2');
+    svg.appendChild(halfLine);
+
 
     const enemyLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
     enemyLine.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
@@ -117,6 +207,25 @@
     svg.appendChild(playerLine);
     const playerstart = {x: player.x, y: player.y};
 
+    const goalZone = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    goalZone.setAttribute('x', STAGE_WIDTH - 10);
+    goalZone.setAttribute('y', STAGE_HEIGHT / 3);
+    goalZone.setAttribute('width', '20');
+    goalZone.setAttribute('height', STAGE_HEIGHT / 3);
+    goalZone.setAttribute('fill', 'rgba(34, 197, 94, 0.3)');
+    goalZone.setAttribute('stroke', 'rgba(34, 197, 94, 0.8)');
+    goalZone.setAttribute('stroke-width', '2');
+    svg.appendChild(goalZone);
+
+    const EvilZone = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    EvilZone.setAttribute('x', - 10);
+    EvilZone.setAttribute('y', STAGE_HEIGHT / 3);
+    EvilZone.setAttribute('width', '20');
+    EvilZone.setAttribute('height', STAGE_HEIGHT / 3);
+    EvilZone.setAttribute('fill', 'rgba(255, 0, 0, 0.3)');
+    EvilZone.setAttribute('stroke', 'rgba(255, 0, 0, 0.8)');
+    EvilZone.setAttribute('stroke-width', '2');
+    svg.appendChild(EvilZone);
 
     function setElementPos(el, x, y) {
         el.style.left = x + 'px';
@@ -168,6 +277,57 @@
         const dy = intercept.y - player.y;
     }
 
+    function ResetGame() {
+        Countdown.style.display = "inline";
+        Countdown.style.color = "#0b620b";
+        Countdown.textContent = "3";
+
+        setTimeout(() => {
+            Countdown.style.color = "#d14800";
+            Countdown.textContent = "2";
+        }, 1000);
+        setTimeout(() => {
+            Countdown.style.color = "#0b68d1";
+            Countdown.textContent = "1";
+        }, 2000);
+        setTimeout(() => {
+            console.log("hej!")
+            Countdown.style.display = "";
+            player.x = INITIAL_STATE.player.x;
+            player.y = INITIAL_STATE.player.y;
+            enemy.x = INITIAL_STATE.enemy.x;
+            enemy.y = INITIAL_STATE.enemy.y;
+
+            velocity.x = INITIAL_STATE.velocity.x;
+            velocity.y = INITIAL_STATE.velocity.y;
+
+            enemystart.x = enemy.x;
+            enemystart.y = enemy.y;
+            playerstart.x = player.x;
+            playerstart.y = player.y;
+
+            setElementPos(Player, player.x, player.y);
+            setElementPos(Enemy, enemy.x, enemy.y);
+
+            Meet.style.display = 'none';
+                
+            lastTime = null;
+            running = true;
+            requestAnimationFrame(loop);           
+            }, 3000);
+    }
+
+    function StuckF() {
+        Stuck += 4;
+        if (Stuck >= 100) {
+            Events.textContent = "Money Puck apears to be stuck!"
+            enemy.x = INITIAL_STATE.enemy.x;
+            enemy.y = INITIAL_STATE.enemy.y;
+            velocity.x = INITIAL_STATE.velocity.x;
+            velocity.y = INITIAL_STATE.velocity.y;
+        }
+    }
+
     function loop(timestamp) {
         if (!running) return;
         if (!lastTime) lastTime = timestamp;
@@ -177,11 +337,48 @@
         enemy.x += velocity.x * dt;
         enemy.y += velocity.y * dt;
 
-        if (enemy.x < 0) enemy.x = STAGE_WIDTH;
-        if (enemy.x > STAGE_WIDTH) enemy.x = 0;
-        if (enemy.y < 0) enemy.y = STAGE_HEIGHT;
-        if (enemy.y > STAGE_HEIGHT) enemy.y = 0;
+        if (enemy.x < 0) {
+            velocity.x = -(velocity.x);
+            StuckF();
+        } else if (Stuck > 0) {
+            Stuck--;
+        }
 
+        if (enemy.x > STAGE_WIDTH) {
+            velocity.x = -(velocity.x);
+            StuckF();
+        } else if (Stuck > 0) {
+            Stuck--;
+        }
+
+        if (enemy.y < 0) {
+            velocity.y = -(velocity.y);
+            StuckF();
+        } else if (Stuck > 0) {
+            Stuck--;
+        }
+
+        if (enemy.y > STAGE_HEIGHT) {
+            velocity.y = -(velocity.y);
+            StuckF();
+        } else if (Stuck > 0) {
+            Stuck--;
+        }
+
+        if (enemy.x >= STAGE_WIDTH && enemy.y > (STAGE_HEIGHT / 3) && enemy.y < (STAGE_HEIGHT * (2 / 3))) {
+            Events.textContent = "Money puck touched player base!"
+            running = false;
+            ResetGame();
+        }
+
+        if (enemy.x <= 0 && enemy.y > (STAGE_HEIGHT / 3) && enemy.y < (STAGE_HEIGHT * (2 / 3))) {
+            Events.textContent = "Money puck touched enemy base!"
+            running = false;
+            ResetGame();
+        }
+        // if (enemy.x > STAGE_WIDTH) velocity.x = -(velocity.x);
+        // if (enemy.y < 0) velocity.y = -(velocity.y);
+        // if (enemy.y > STAGE_HEIGHT) velocity.y = -(velocity.y);
 
         const intercept = getInterceptPoint(player, player.speed, enemy, velocity);
         const dx = intercept.x - player.x;
@@ -193,7 +390,7 @@
             player.x += (dx / dist) * moveDist;
             player.y += (dy / dist) * moveDist;
 
-            player.x = Math.max(Math.min(STAGE_WIDTH, player.x));
+            player.x = Math.max(Math.min(STAGE_WIDTH / 2, player.x));
             player.y = Math.max(Math.min(STAGE_HEIGHT, player.y));
         }
 
@@ -214,12 +411,62 @@
         playerLine.setAttribute('x2', player.x);
         playerLine.setAttribute('y2', player.y);
 
+        // Dont change velocity copy it from the player / enemy
         if (Math.hypot(player.x - enemy.x, player.y - enemy.y) <= radius) {
             Meet.style.display = 'block';
+            s += 2;
+            //console.log(s);
+            if (s >= 100) {
+                Events.textContent = "Money Puck apears to be stuck!"
+                enemy.x = INITIAL_STATE.enemy.x;
+                enemy.y = INITIAL_STATE.enemy.y;
+                velocity.x = INITIAL_STATE.velocity.x;
+                velocity.y = INITIAL_STATE.velocity.y;
+            }
             setElementPos(Meet, enemy.x, enemy.y);
-            running = false;
+            if (temp == 1) {
+                temp = 0
+                velocity.x = -(velocity.x) * 0.8;
+                velocity.y = -(velocity.y) * 0.8;
+                setTimeout(() => {
+                    temp = 1
+                }, 50);   
+            }
+            // running = false;
+        } else {
+            if (s > 0) {
+                s--;
+            }
         }
 
+        const deltaX = AccPlayer.x - AccPlayerPrev.x;
+        const deltaY = AccPlayer.y - AccPlayerPrev.y;
+
+        AccPlayerVelocity.x = (deltaX / dt) * 0.4;
+        AccPlayerVelocity.y = (deltaY / dt) * 0.4;
+        if (AccPlayerVelocity.x / dt > 500) {
+            AccPlayerVelocity.x = 500;
+        } else if (AccPlayerVelocity.x / dt < -500) {
+            AccPlayerVelocity.x = -500;
+        }
+        if (AccPlayerVelocity.y / dt > 500) {
+            AccPlayerVelocity.y = 500;
+        } else if (AccPlayerVelocity.y / dt < -500) {
+            AccPlayerVelocity.y = -500;
+        }
+
+        console.log(AccPlayerVelocity.x, AccPlayerVelocity.y)
+        if (Math.hypot(AccPlayer.x - enemy.x, AccPlayer.y - enemy.y) <= 30) {
+            if (tempP == 1) {
+                tempP = 0;
+                velocity.x = AccPlayerVelocity.x;
+                velocity.y = AccPlayerVelocity.y;
+                setTimeout(() => {
+                    tempP = 1
+                }, 150);   
+            }
+        }
+        
         computeMeet();
         requestAnimationFrame(loop);
     }
@@ -233,5 +480,20 @@
 
         computeMeet();
         requestAnimationFrame(loop);
+
+    if (running == true) {
+        stage.addEventListener('mousemove', function (event) {
+            const rect = stage.getBoundingClientRect();
+
+            AccPlayerPrev.x = AccPlayer.x;
+            AccPlayerPrev.y = AccPlayer.y;
+
+            AccPlayer.x = Math.max(STAGE_WIDTH / 2, Math.min(STAGE_WIDTH, event.clientX - STAGE_WIDTH / 3));
+            AccPlayer.y = event.clientY - rect.top;
+
+            APlayer.style.left = `${AccPlayer.x}px`;
+            APlayer.style.top = `${AccPlayer.y}px`;
+        })
+    }
 </script>
 </html>
