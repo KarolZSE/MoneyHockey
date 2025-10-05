@@ -25,5 +25,4 @@ In this game you have:
 - [Coin Icon created by NajmunNahar - Flaticon](https://www.flaticon.com/free-icons/coin)
 - [Sound effects](https://pixabay.com/sound-effects)
 - [Air Hockey Stick - artemka](https://artemka-sh.itch.io/hockey-2d-assets)
-
-
+- Some small parts of the code were written with the help of AI (Claude AI or CHATGPT)
