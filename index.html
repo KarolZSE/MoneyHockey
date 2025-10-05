@@ -11,8 +11,6 @@
         justify-content: center;
         align-items: center;
         flex-direction: column-reverse;
-        gap: 20px;
-        padding: 20px;
         background: #3d71c5;
         color: #0b620b;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -30,7 +28,7 @@
         height: 600px;
         background: linear-gradient(180deg, #fff, #eaf2ea);
         overflow: hidden;
-        border: 2p solid #ddd;
+        border: 2px solid #ddd;
         border-radius: 8px;
     }
 
@@ -50,7 +48,7 @@
         pointer-events: none;
     }
 
-    #Player, #Enemy, #AccPlayer {
+    #Enemy, #Coin, #AccPlayer {
         position: absolute;
         width: 24px;
         height: 24px;
@@ -64,52 +62,54 @@
         box-shadow: 0 4px 10px rgba(11, 33, 54, 0.15);
     }
 
-    #Player {
-        background: #0b68d1;
+    #Enemy {
+        background-image: url(Stick.svg);
+        background-size: cover;
+        width: 36px;
+        height: 36px;
+        background-position: center;
+        background-repeat: no-repeat;
         border: 3px solid rgba(11, 104, 209, 0.3);
     }
 
-    #Enemy {
-        background: #d14800;
-        border: 3px solid rgba(209, 72, 72, 0.3);
+    #Coin {
+        background-image: url(dollar.png);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: 9;
     }
 
     #AccPlayer {
-        background: #0b620b;
+        background-image: url(Stick.svg);
+        filter: hue-rotate(240deg);
+        width: 36px;
+        height: 36px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         border: 3px solid rgba(17, 133, 14, 0.3);
     }
 
-    #Meet {
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
-        background: #ffb400;
-        border: 2px solid #ff8800;
-        display: none;
-        z-index: 2;
-    }
-    #Event {
-        color: black;
-    }
     #Menu {
         position: absolute;
         top: 50%;
         transform: translate(0%, -50%);
         display: flex;
-        display: none;
         flex-direction: column;
         align-items: center;
         gap: 10px;
         z-index: 10;
         color: black;
+        width: 100%;
     }
 
     #Menu > h1 {
         color: #e52554;
         -webkit-text-stroke: 1px #181818;
+        margin: 0;
     }
+
     .diff {
         width: 20%;
         background-color: #181818;
@@ -120,12 +120,58 @@
         border-radius: 10px;
         
     }
+
+    #Scores {
+        display: flex;
+        justify-content: center;
+        width: 100vw;
+        gap: 10px;
+        height: 1%;
+        left: 5%;
+        color: #181818;
+        margin-top: 10px;
+        text-align: center;
+
+    }
+    
+    #Scores p {
+        margin: 0;
+    }
+
+    .ScoresBoxes {
+        height: 60px;
+        width: 150px;
+        border-radius: 10px;
+        font-size: 20px;
+        background-color: white;
+        margin-top: 10px;
+    }
+
+    #Event {
+        color: white;
+        -webkit-text-stroke: 1px #181818;
+        font-size: 35px;
+    }
+
+    #textbelow {
+        width: 50%;
+        color: #e52554;
+        font-size: 20px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 100px;
+    }
+
 </style>
 <body>
+<div id="Scores">
+    <div>
+        <div class="ScoresBoxes">You have <p><span id="PlayerWallet">5</span> <img src="dollar.png" width="16px"></img> <span id="PlayerWalletMark"></span></p></div>
+        <div class="ScoresBoxes">Your playing on: <span id="Difficulty">...</span> Difficulty!</div>
+    </div>
     <div id="stage">
         <div id="Menu">
-            <H1>Welcome to the coin hockey!</H1>
-            <p>LORUM IPSUM gerhgerrerggegergerrgergergergergerrrergergergerergergeregergergerergergerggergerrgergerger</p>
+            <H1 id="text">Welcome to the coin hockey!</H1>
+            <h2 id="textbelow">For the rules please read the Readme. Please start a new game by choosing the difficulty bellow :)</h2>
             <div style="display: flex; justify-content: center; gap: 100px; width: 100%;">
             <button class="diff" id="Easy">EASY</button>
             <button class="diff" id="Hard">HARD</button>
@@ -133,48 +179,80 @@
             <button class="diff" id="Medium">MEDIUM</button>
         </div>
         <svg id="svg" width="800" height="600"></svg>
-        <div id="Enemy">$</div>
-        <div id="Player">E</div>
-        <div id="AccPlayer">P</div>
-        <h1 id="Countdown">Hi!</h1>
-        <div id="Meet"></div>
+        <div id="Coin"></div>
+        <div id="Enemy"></div>
+        <div id="AccPlayer"></div>
+        <h1 id="Countdown"></h1>
     </div>
-    <h1 id="Event">Event</h1>
+    <div class="ScoresBoxes">Enemy has <p><span id="EnemyWallet">5</span> <img src="dollar.png" width="16px"></img> <span id="EnemyWalletMark"></span></p></div>
+</div>
+<div><h1 id="Event">Here will be displayed the event's of today's game.</h1></div>
 </body>
 <script>
+    // Enemy is an html object
+    // enemy is an variable
+    // Coin is an html object
+    // coin is an variable
+    // APlayer is an html object
+    // AccPlayer is an variable
+
+    const Coin = document.getElementById("Coin");
     const Enemy = document.getElementById("Enemy");
-    const Player = document.getElementById("Player");
     const svg = document.getElementById("svg");
-    const Meet = document.getElementById("Meet");
     const APlayer = document.getElementById("AccPlayer");
     const Events = document.getElementById("Event");
     const Countdown = document.getElementById("Countdown");
+    const text = document.getElementById("text");
+    const textbelow = document.getElementById("textbelow");
+
+    const hit = new Audio('Hit.wav');
+    const win = new Audio('Win.mp3');
+    const lost = new Audio('Lost.mp3');
+    const Megalost = new Audio('MegaLost.mp3');
+    const Megawin = new Audio('MegaWin.mp3');
+    const CountdownAudio = new Audio('Countdown.mp3');
+
+
+    const PlayerWallet = document.getElementById("PlayerWallet");
+    const EnemyWallet = document.getElementById("EnemyWallet");
+    const Difficulty = document.getElementById("Difficulty");
+
+    const PlayerWalletMark = document.getElementById("PlayerWalletMark");
+    const EnemyWalletMark = document.getElementById("EnemyWalletMark");
 
     const stage = document.getElementById("stage");
     const STAGE_WIDTH = 800;
     const STAGE_HEIGHT = 600;
 
-    const AccPlayer = {x: 0, y: 0};
+    const AccPlayer = {x: 600, y: 300};
     const AccPlayerPrev = {x: 0, y: 0};
     const AccPlayerVelocity = {x: 0, y: 0};
-    const player = { x: 300, y: 300, speed: 600};
-    const enemy = { x: 400, y: 300};
+
+    APlayer.style.left = `${AccPlayer.x}px`;
+    APlayer.style.top = `${AccPlayer.y}px`;
+    
+    const enemy = { x: 300, y: 300, speed: 600};
+    const coin = { x: 450, y: 300};
     const velocity = { x: 150, y: 150};
     const radius = 5;
+    let PlayerWalletV, EnemyWalletV;
 
     const INITIAL_STATE = {
-        player: { x: player.x, y: player.y, speed: player.speed},
-        enemy: { x: enemy.x, y: enemy.y},
+        enemy: { x: enemy.x, y: enemy.y, speed: enemy.speed},
+        coin: { x: coin.x, y: coin.y},
         velocity:{ x: 150, y: 150}
     };
 
-    let running = true;
+    let mode = 500;
+    let running = false;
     let lastTime = null;
     let temp = 1;
     let tempP = 1;
     let Stuck = 0;
     let s = 0;
+    const OriginalEvent = Events.textContent;
  
+    // Make the lines (I know there are more space efficient ways)
     circleEl = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circleEl.setAttribute('fill', 'rgba(11, 104, 209, 0.06)');
     circleEl.setAttribute('stroke', 'rgba(11, 104, 209, 0.4)');
@@ -182,30 +260,52 @@
     circleEl.setAttribute('pointer-events', 'none');
     svg.appendChild(circleEl);
 
-    const halfLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    halfLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
     halfLine.setAttribute('x1', STAGE_WIDTH / 2);
     halfLine.setAttribute('y1', '0');
     halfLine.setAttribute('x2', STAGE_WIDTH / 2);
     halfLine.setAttribute('y1', STAGE_HEIGHT);
     halfLine.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
     halfLine.setAttribute('stroke-width', '2');
-    halfLine.setAttribute('stroke-dasharray', '4 2');
     svg.appendChild(halfLine);
 
+    halfLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    halfLine.setAttribute('x1', STAGE_WIDTH / 7);
+    halfLine.setAttribute('y1', '0');
+    halfLine.setAttribute('x2', STAGE_WIDTH / 7);
+    halfLine.setAttribute('y1', STAGE_HEIGHT);
+    halfLine.setAttribute('stroke', 'rgba(11, 104, 209, 0.3)');
+    halfLine.setAttribute('stroke-width', '2');
+    svg.appendChild(halfLine);
 
-    const enemyLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    enemyLine.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
-    enemyLine.setAttribute('stroke-width', '2');
-    enemyLine.setAttribute('stroke-dasharray', '4 2');
-    svg.appendChild(enemyLine);
-    const enemystart = {x: enemy.x, y: enemy.y};
+    halfLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    halfLine.setAttribute('x1', STAGE_WIDTH * (6/7));
+    halfLine.setAttribute('y1', '0');
+    halfLine.setAttribute('x2', STAGE_WIDTH * (6/7));
+    halfLine.setAttribute('y1', STAGE_HEIGHT);
+    halfLine.setAttribute('stroke', 'rgba(11, 104, 209, 0.3)');
+    halfLine.setAttribute('stroke-width', '2');
+    svg.appendChild(halfLine);
 
-    const playerLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    playerLine.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
-    playerLine.setAttribute('stroke-width', '2');
-    playerLine.setAttribute('stroke-dasharray', '4 2');
-    svg.appendChild(playerLine);
-    const playerstart = {x: player.x, y: player.y};
+    circleMid = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circleMid.setAttribute('cx', STAGE_WIDTH / 2);
+    circleMid.setAttribute('cy', STAGE_HEIGHT / 2);
+    circleMid.setAttribute('r', 30);
+    circleMid.setAttribute('fill', 'rgb(255, 255, 255)');
+    circleMid.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
+    circleMid.setAttribute('stroke-width', '2');
+    circleMid.setAttribute('pointer-events', 'none');
+    svg.appendChild(circleMid);
+
+    circleMid = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circleMid.setAttribute('cx', STAGE_WIDTH / 2);
+    circleMid.setAttribute('cy', STAGE_HEIGHT / 2);
+    circleMid.setAttribute('r', 150);
+    circleMid.setAttribute('fill', 'rgba(0, 0, 0, 0)');
+    circleMid.setAttribute('stroke', 'rgba(209, 48, 48, 0.5)');
+    circleMid.setAttribute('stroke-width', '2');
+    circleMid.setAttribute('pointer-events', 'none');
+    svg.appendChild(circleMid);
 
     const goalZone = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     goalZone.setAttribute('x', STAGE_WIDTH - 10);
@@ -233,6 +333,7 @@
 
     }
 
+    // Calculate interception point for enemy to go to (to touch the coin)
     function getInterceptPoint(P, Sp, E, Ve) {
         const dx = E.x - P.x;
         const dy = E.y - P.y;
@@ -263,21 +364,19 @@
     }
 
     function computeMeet() {
-        const intercept = getInterceptPoint(player, player.speed, enemy, velocity);
+        const intercept = getInterceptPoint(enemy, enemy.speed, coin, velocity);
 
         if (!intercept) {
-            Meet.style.display = 'none';
             return;
         }
 
-        Meet.style.display = 'block';
-        setElementPos(Meet, intercept.x, intercept.y);
-
-        const dx = intercept.x - player.x;
-        const dy = intercept.y - player.y;
+        const dx = intercept.x - enemy.x;
+        const dy = intercept.y - enemy.y;
     }
 
+    // Reset after a goal or start the game
     function ResetGame() {
+        CountdownAudio.play();
         Countdown.style.display = "inline";
         Countdown.style.color = "#0b620b";
         Countdown.textContent = "3";
@@ -293,23 +392,16 @@
         setTimeout(() => {
             console.log("hej!")
             Countdown.style.display = "";
-            player.x = INITIAL_STATE.player.x;
-            player.y = INITIAL_STATE.player.y;
             enemy.x = INITIAL_STATE.enemy.x;
             enemy.y = INITIAL_STATE.enemy.y;
+            coin.x = INITIAL_STATE.coin.x;
+            coin.y = INITIAL_STATE.coin.y;
 
             velocity.x = INITIAL_STATE.velocity.x;
             velocity.y = INITIAL_STATE.velocity.y;
 
-            enemystart.x = enemy.x;
-            enemystart.y = enemy.y;
-            playerstart.x = player.x;
-            playerstart.y = player.y;
-
-            setElementPos(Player, player.x, player.y);
             setElementPos(Enemy, enemy.x, enemy.y);
-
-            Meet.style.display = 'none';
+            setElementPos(Coin, coin.x, coin.y);
                 
             lastTime = null;
             running = true;
@@ -317,153 +409,189 @@
             }, 3000);
     }
 
+    // fail safe in case coin falls out of bounds
     function StuckF() {
         Stuck += 4;
         if (Stuck >= 100) {
-            Events.textContent = "Money Puck apears to be stuck!"
-            enemy.x = INITIAL_STATE.enemy.x;
-            enemy.y = INITIAL_STATE.enemy.y;
+            Events.textContent = "The coin appears to be stuck!"
+            setTimeout(() => {
+                Events.textContent = OriginalEvent;     
+            }, 3000);
+            coin.x = INITIAL_STATE.coin.x;
+            coin.y = INITIAL_STATE.coin.y;
             velocity.x = INITIAL_STATE.velocity.x;
             velocity.y = INITIAL_STATE.velocity.y;
         }
     }
 
+    // Bounce the coin off the walls
     function loop(timestamp) {
         if (!running) return;
         if (!lastTime) lastTime = timestamp;
         const dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
-        enemy.x += velocity.x * dt;
-        enemy.y += velocity.y * dt;
+        coin.x += velocity.x * dt;
+        coin.y += velocity.y * dt;
 
-        if (enemy.x < 0) {
+        if (coin.x < 0) {
             velocity.x = -(velocity.x);
             StuckF();
         } else if (Stuck > 0) {
             Stuck--;
         }
 
-        if (enemy.x > STAGE_WIDTH) {
+        if (coin.x > STAGE_WIDTH) {
             velocity.x = -(velocity.x);
             StuckF();
         } else if (Stuck > 0) {
             Stuck--;
         }
 
-        if (enemy.y < 0) {
+        if (coin.y < 0) {
             velocity.y = -(velocity.y);
             StuckF();
         } else if (Stuck > 0) {
             Stuck--;
         }
 
-        if (enemy.y > STAGE_HEIGHT) {
+        if (coin.y > STAGE_HEIGHT) {
             velocity.y = -(velocity.y);
             StuckF();
         } else if (Stuck > 0) {
             Stuck--;
         }
 
-        if (enemy.x >= STAGE_WIDTH && enemy.y > (STAGE_HEIGHT / 3) && enemy.y < (STAGE_HEIGHT * (2 / 3))) {
-            Events.textContent = "Money puck touched player base!"
+        // Detect if coin touched bases
+        if (coin.x >= STAGE_WIDTH && coin.y > (STAGE_HEIGHT / 3) && coin.y < (STAGE_HEIGHT * (2 / 3))) {
+            Events.textContent = "The coin has touched player's base!"
+            setTimeout(() => {
+                Events.textContent = OriginalEvent;     
+            }, 3000);
+            PlayerWalletV -= 1, EnemyWalletV += 1
+            PlayerWallet.textContent = PlayerWalletV;
+            EnemyWallet.textContent = EnemyWalletV;
+            PlayerWalletMark.textContent = '📉';
+            EnemyWalletMark.textContent = '📈';
             running = false;
-            ResetGame();
+            if (PlayerWalletV <= 0) {
+                Megalost.play();
+                text.textContent = 'You are a bankrupt!'
+                Menu.style.display = "";
+            } else if (EnemyWalletV <= 0) {
+                Megawin.play();
+                text.innerHTML = '<p style="color:#0b620b">The enemy has bankrupted!</p>'
+                Menu.style.display = "";
+            } else {
+                ResetGame();
+                lost.play();
+            }
         }
 
-        if (enemy.x <= 0 && enemy.y > (STAGE_HEIGHT / 3) && enemy.y < (STAGE_HEIGHT * (2 / 3))) {
-            Events.textContent = "Money puck touched enemy base!"
+        if (coin.x <= 0 && coin.y > (STAGE_HEIGHT / 3) && coin.y < (STAGE_HEIGHT * (2 / 3))) {
+            Events.textContent = "The coin has touched enemy's base!"
+            setTimeout(() => {
+                Events.textContent = OriginalEvent;     
+            }, 3000);
+            PlayerWalletV += 1, EnemyWalletV -= 1
+            PlayerWallet.textContent = PlayerWalletV;
+            EnemyWallet.textContent = EnemyWalletV;
+            PlayerWalletMark.textContent = '📈';
+            EnemyWalletMark.textContent = '📉';
             running = false;
-            ResetGame();
+            if (PlayerWalletV <= 0) {
+                Megalost.play();
+                text.textContent = 'You are a bankrupt!'
+                textbelow.textContent = 'This means that you had ran out off money (No money = No gambling). Please start a new game by choosing the difficulty bellow :)'
+                Menu.style.display = "";
+            } else if (EnemyWalletV <= 0) {
+                Megawin.play();
+                text.innerHTML = '<p style="color:#0b620b">The enemy has bankrupted!</p>'
+                textbelow.textContent = 'This means that the enemy had ran out off money (No money = No gambling). Please start a new game by choosing the difficulty bellow :)'
+                Menu.style.display = "";
+            } else {
+                ResetGame();
+                lost.play();
+            }
         }
-        // if (enemy.x > STAGE_WIDTH) velocity.x = -(velocity.x);
-        // if (enemy.y < 0) velocity.y = -(velocity.y);
-        // if (enemy.y > STAGE_HEIGHT) velocity.y = -(velocity.y);
 
-        const intercept = getInterceptPoint(player, player.speed, enemy, velocity);
-        const dx = intercept.x - player.x;
-        const dy = intercept.y - player.y;
+        const intercept = getInterceptPoint(enemy, enemy.speed, coin, velocity);
+        const dx = intercept.x - enemy.x;
+        const dy = intercept.y - enemy.y;
         const dist = Math.hypot(dx, dy);
 
         if (dist > 0.1) {
-            let moveDist = Math.min(player.speed * dt, dist);
-            player.x += (dx / dist) * moveDist;
-            player.y += (dy / dist) * moveDist;
+            let moveDist = Math.min(enemy.speed * dt, dist);
+            enemy.x += (dx / dist) * moveDist;
+            enemy.y += (dy / dist) * moveDist;
 
-            player.x = Math.max(Math.min(STAGE_WIDTH / 2, player.x));
-            player.y = Math.max(Math.min(STAGE_HEIGHT, player.y));
+            enemy.x = Math.max(Math.min(STAGE_WIDTH / 2, enemy.x));
+            enemy.y = Math.max(Math.min(STAGE_HEIGHT, enemy.y));
         }
 
-        setElementPos(Player, player.x, player.y);
         setElementPos(Enemy, enemy.x, enemy.y);
+        setElementPos(Coin, coin.x, coin.y);
 
-        circleEl.setAttribute('cx', player.x);
-        circleEl.setAttribute('cy', player.y);
+        circleEl.setAttribute('cx', enemy.x);
+        circleEl.setAttribute('cy', enemy.y);
         circleEl.setAttribute('r', radius);
 
-        enemyLine.setAttribute('x1', enemystart.x);
-        enemyLine.setAttribute('y1', enemystart.y);
-        enemyLine.setAttribute('x2', enemy.x);
-        enemyLine.setAttribute('y2', enemy.y);
-
-        playerLine.setAttribute('x1', playerstart.x);
-        playerLine.setAttribute('y1', playerstart.y);
-        playerLine.setAttribute('x2', player.x);
-        playerLine.setAttribute('y2', player.y);
-
-        // Dont change velocity copy it from the player / enemy
-        if (Math.hypot(player.x - enemy.x, player.y - enemy.y) <= radius) {
-            Meet.style.display = 'block';
+        // Bounce the coin if contact with enemy exists and if coin is stuck on the enemy relese it
+        if (Math.hypot(enemy.x - coin.x, enemy.y - coin.y) <= radius) {
             s += 2;
-            //console.log(s);
             if (s >= 100) {
-                Events.textContent = "Money Puck apears to be stuck!"
-                enemy.x = INITIAL_STATE.enemy.x;
-                enemy.y = INITIAL_STATE.enemy.y;
+                Events.textContent = "The coin appears to be stuck!"
+                setTimeout(() => {
+                    Events.textContent = OriginalEvent;     
+                }, 3000);
+                coin.x = INITIAL_STATE.coin.x;
+                coin.y = INITIAL_STATE.coin.y;
                 velocity.x = INITIAL_STATE.velocity.x;
                 velocity.y = INITIAL_STATE.velocity.y;
             }
-            setElementPos(Meet, enemy.x, enemy.y);
             if (temp == 1) {
                 temp = 0
+                coin.x += 10;
+                hit.play();
                 velocity.x = -(velocity.x) * 0.8;
                 velocity.y = -(velocity.y) * 0.8;
                 setTimeout(() => {
                     temp = 1
                 }, 50);   
             }
-            // running = false;
         } else {
             if (s > 0) {
                 s--;
             }
         }
 
+    // Calculating the impact
         const deltaX = AccPlayer.x - AccPlayerPrev.x;
         const deltaY = AccPlayer.y - AccPlayerPrev.y;
 
-        AccPlayerVelocity.x = (deltaX / dt) * 0.4;
-        AccPlayerVelocity.y = (deltaY / dt) * 0.4;
-        if (AccPlayerVelocity.x / dt > 500) {
-            AccPlayerVelocity.x = 500;
-        } else if (AccPlayerVelocity.x / dt < -500) {
-            AccPlayerVelocity.x = -500;
+        AccPlayerVelocity.x = (deltaX / dt) * 0.6;
+        AccPlayerVelocity.y = (deltaY / dt) * 0.6;
+        console.log(AccPlayerVelocity.x, AccPlayerVelocity.y)
+        if (AccPlayerVelocity.x > mode) {
+            AccPlayerVelocity.x = mode;
+        } else if (AccPlayerVelocity.x < -mode) {
+            AccPlayerVelocity.x = -mode;
         }
-        if (AccPlayerVelocity.y / dt > 500) {
-            AccPlayerVelocity.y = 500;
-        } else if (AccPlayerVelocity.y / dt < -500) {
-            AccPlayerVelocity.y = -500;
+        if (AccPlayerVelocity.y > mode) {
+            AccPlayerVelocity.y = mode;
+        } else if (AccPlayerVelocity.y < -mode) {
+            AccPlayerVelocity.y = -mode;
         }
 
-        console.log(AccPlayerVelocity.x, AccPlayerVelocity.y)
-        if (Math.hypot(AccPlayer.x - enemy.x, AccPlayer.y - enemy.y) <= 30) {
+        if (Math.hypot(AccPlayer.x - coin.x, AccPlayer.y - coin.y) <= 30) {
             if (tempP == 1) {
                 tempP = 0;
+                hit.play();
                 velocity.x = AccPlayerVelocity.x;
                 velocity.y = AccPlayerVelocity.y;
                 setTimeout(() => {
                     tempP = 1
-                }, 150);   
+                }, 400);   
             }
         }
         
@@ -471,29 +599,72 @@
         requestAnimationFrame(loop);
     }
 
-        setElementPos(Player, player.x, player.y);
         setElementPos(Enemy, enemy.x, enemy.y);
+        setElementPos(Coin, coin.x, coin.y);
 
-        circleEl.setAttribute('cx', player.x);
-        circleEl.setAttribute('cy', player.y);
+        circleEl.setAttribute('cx', enemy.x);
+        circleEl.setAttribute('cy', enemy.y);
         circleEl.setAttribute('r', radius);
 
         computeMeet();
         requestAnimationFrame(loop);
 
-    if (running == true) {
+        // Mouse movement and getting the variable for calculating the impact
         stage.addEventListener('mousemove', function (event) {
+            if (!running) return;
             const rect = stage.getBoundingClientRect();
 
             AccPlayerPrev.x = AccPlayer.x;
             AccPlayerPrev.y = AccPlayer.y;
 
-            AccPlayer.x = Math.max(STAGE_WIDTH / 2, Math.min(STAGE_WIDTH, event.clientX - STAGE_WIDTH / 3));
+            AccPlayer.x = Math.max(STAGE_WIDTH / 2, Math.min(STAGE_WIDTH, event.clientX - rect.left));
             AccPlayer.y = event.clientY - rect.top;
 
             APlayer.style.left = `${AccPlayer.x}px`;
             APlayer.style.top = `${AccPlayer.y}px`;
         })
+
+        // Buttons for game difficulty
+    const Easy = document.getElementById("Easy");
+    const Medium = document.getElementById("Medium");
+    const Hard = document.getElementById("Hard");
+    const Menu = document.getElementById("Menu");
+
+    Easy.onclick = function() {
+        Menu.style.display = "none";
+        Difficulty.textContent = 'Easy';
+        Difficulty.style.color = '#0b620b';
+        mode = 600;
+        HardResetGame();
+        ResetGame();
+    };
+
+    Medium.onclick = function() {
+        Menu.style.display = "none";
+        Difficulty.textContent = 'Mid';
+        Difficulty.style.color = '#d14800';
+        mode = 550;
+        HardResetGame();
+        ResetGame();
+    };
+
+    Hard.onclick = function() {
+        Menu.style.display = "none";
+        Difficulty.textContent = 'Hard';
+        Difficulty.style.color = '#e52554';
+        mode = 500;
+        HardResetGame();
+        ResetGame();
+    };
+
+    // Function for things after winning and loosing
+    function HardResetGame() {
+        PlayerWalletV = 5, EnemyWalletV = 5;
+        PlayerWallet.textContent = PlayerWalletV;
+        EnemyWallet.textContent = EnemyWalletV;
+        PlayerWalletMark.textContent = '';
+        EnemyWalletMark.textContent = '';
     }
+
 </script>
 </html>
