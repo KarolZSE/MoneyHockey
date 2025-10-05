@@ -5,6 +5,7 @@ played in real life, called air hockey! The rules are simple:
 
 # What's in this game?
 In this game you have:
+- Custom physics
 - "Smart" enemy to play with.
 - A coin to throw around.
 - Win or Lose scenarion.
@@ -24,4 +25,5 @@ In this game you have:
 - [Coin Icon created by NajmunNahar - Flaticon](https://www.flaticon.com/free-icons/coin)
 - [Sound effects](https://pixabay.com/sound-effects)
 - [Air Hockey Stick - artemka](https://artemka-sh.itch.io/hockey-2d-assets)
+
 
